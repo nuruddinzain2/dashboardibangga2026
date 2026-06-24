@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <!-- Meta tag ini krusial agar tampilan otomatis menyesuaikan layar HP -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Monitoring iBangga 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f6fa;
+      color: #111827;
+      min-height: 100vh;
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px; /* Dioptimalkan untuk kenyamanan baca di HP & Tablet */
+    }
+
+    /* Header */
+    .header {
+      background: #fff;
+      border: 1px solid #e8eaf0;
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 4px;
+    }
+    .header p {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      margin: 0 0 0.5rem 0.25rem;
+    }
+
+    /* Struktur Tingkat 1: Kecamatan */
+    .kecamatan-card {
+      background: #fff;
+      border: 1px solid #e8eaf0;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.01);
+    }
+
+    .kecamatan-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: #fff;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s;
+    }
+    .kecamatan-btn:hover { background: #f9fafb; }
+    
+    .kecamatan-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .kecamatan-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .kecamatan-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+    .chevron-icon {
+      font-size: 16px;
+      color: #9ca3af;
+      transition: transform 0.2s;
+    }
+
+    /* Container Kelurahan (Drop-down Kecamatan) */
+    .kelurahan-container {
+      display: none;
+      border-top: 1px solid #f3f4f6;
+      background: #fcfcfd;
+    }
+
+    /* Struktur Tingkat 2: Kelurahan (Induk Utama) */
+    .kelurahan-block {
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .kelurahan-block:last-child {
+      border-bottom: none;
+    }
+
+    .kelurahan-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px 12px 24px; /* Menjorok sedikit ke dalam */
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+    }
+    .kelurahan-btn:hover { background: #f3f4f6; }
+
+    .kelurahan-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    /* Container Data RT (Drop-down Kelurahan) 
+       SEKARANG POSISINYA PERSIS DI BAWAH KELURAHAN TERKAIT */
+    .rt-container {
+      display: none;
+      background: #f3f4f6;
+      padding: 10px 16px 12px 32px; /* Lebih menjorok ke dalam agar hierarki jelas */
+      border-top: 1px solid #e5e7eb;
+    }
+
+    /* Judul Tabel Data Mini */
+    .table-header {
+      display: flex;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #d1d5db;
+      margin-bottom: 6px;
+    }
+    
+    /* Baris Data RT */
+    .rt-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 13px;
+      color: #4b5563;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+    .rt-row:last-child { border-bottom: none; }
+
+    /* Kolom Flexbox agar lurus dan tidak terpotong di HP */
+    .col-rt { flex: 1; font-weight: 500; color: #111827; }
+    .col-target { width: 70px; text-align: center; }
+    .col-terisi { width: 70px; text-align: center; font-weight: 600; color: #166534; }
+
+    /* Animasi putar chevron saat aktif */
+    .active .chevron-icon {
+      transform: rotate(180deg);
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 2rem;
+    }
+
+    /* Penyesuaian responsif khusus layar HP sangat kecil (< 400px) */
+    @media (max-width: 400px) {
+      body { padding: 1rem 0.5rem; }
+      .header { padding: 1.25rem 1rem; }
+      .kecamatan-btn { padding: 12px; }
+      .kelurahan-btn { padding: 10px 12px 10px 16px; }
+      .rt-container { padding: 10px 12px 12px 20px; }
+      .col-target, .col-terisi { width: 55px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header Dashboard -->
+  <div class="header">
+    <h1>Monitoring Pelaksanaan Lapangan</h1>
+    <p>Progres Real-time Penginputan Data iBangga 2026</p>
+  </div>
+
+  <p class="section-title">Wilayah Kerja</p>
+
+  <!-- KECAMATAN 1 -->
+  <div class="kecamatan-card">
+    <button class="kecamatan-btn" onclick="toggleKecamatan(this)">
+      <div class="kecamatan-info">
+        <div class="kecamatan-icon"><i class="ti ti-building-community"></i></div>
+        <span class="kecamatan-name">Banjarmasin Selatan</span>
+      </div>
+      <i class="ti ti-chevron-down chevron-icon"></i>
+    </button>
+    
+    <!-- Container Kelurahan-Kelurahan -->
+    <div class="kelurahan-container">
+      
+      <!-- KELURAHAN A (Blok Mandiri) -->
+      <div class="kelurahan-block">
+        <button class="kelurahan-btn" onclick="toggleKelurahan(this)">
+          <span class="kelurahan-text">Kelurahan Mantuil</span>
+          <i class="ti ti-chevron-down chevron-icon"></i>
+        </button>
+        <!-- Data RT langsung disisipkan di bawah tombol kelurahannya -->
+        <div class="rt-container">
+          <div class="table-header">
+            <span class="col-rt">No. RT</span>
+            <span class="col-target">Target</span>
+            <span class="col-terisi">Terinput</span>
+          </div>
+          <div class="rt-row"><span class="col-rt">RT 001</span><span class="col-target">10</span><span class="col-terisi">10</span></div>
+          <div class="rt-row"><span class="col-rt">RT 002</span><span class="col-target">10</span><span class="col-terisi">8</span></div>
+          <div class="rt-row"><span class="col-rt">RT 003</span><span class="col-target">10</span><span class="col-terisi">5</span></div>
+        </div>
+      </div>
+
+      <!-- KELURAHAN B (Blok Mandiri) -->
+      <div class="kelurahan-block">
+        <button class="kelurahan-btn" onclick="toggleKelurahan(this)">
+          <span class="kelurahan-text">Kelurahan Kelayan Barat</span>
+          <i class="ti ti-chevron-down chevron-icon"></i>
+        </button>
+        <!-- Data RT langsung disisipkan di bawah tombol kelurahannya -->
+        <div class="rt-container">
+          <div class="table-header">
+            <span class="col-rt">No. RT</span>
+            <span class="col-target">Target</span>
+            <span class="col-terisi">Terinput</span>
+          </div>
+          <div class="rt-row"><span class="col-rt">RT 001</span><span class="col-target">10</span><span class="col-terisi">10</span></div>
+          <div class="rt-row"><span class="col-rt">RT 002</span><span class="col-target">10</span><span class="col-terisi">10</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- KECAMATAN 2 -->
+  <div class="kecamatan-card">
+    <button class="kecamatan-btn" onclick="toggleKecamatan(this)">
+      <div class="kecamatan-info">
+        <div class="kecamatan-icon"><i class="ti ti-building-community"></i></div>
+        <span class="kecamatan-name">Banjarmasin Utara</span>
+      </div>
+      <i class="ti ti-chevron-down chevron-icon"></i>
+    </button>
+    
+    <div class="kelurahan-container">
+      
+      <!-- KELURAHAN C -->
+      <div class="kelurahan-block">
+        <button class="kelurahan-btn" onclick="toggleKelurahan(this)">
+          <span class="kelurahan-text">Kelurahan Alalak Utara</span>
+          <i class="ti ti-chevron-down chevron-icon"></i>
+        </button>
+        <div class="rt-container">
+          <div class="table-header">
+            <span class="col-rt">No. RT</span>
+            <span class="col-target">Target</span>
+            <span class="col-terisi">Terinput</span>
+          </div>
+          <div class="rt-row"><span class="col-rt">RT 001</span><span class="col-target">10</span><span class="col-terisi">9</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="footer">© 2026 Dinas PPKBPM Kota Banjarmasin</p>
+</div>
+
+<script>
+  // Fungsi buka/tutup tingkat Kecamatan
+  function toggleKecamatan(btn) {
+    var card = btn.parentElement;
+    var container = card.querySelector('.kelurahan-container');
+    
+    if (container.style.display === 'block') {
+      container.style.display = 'none';
+      btn.classList.remove('active');
+    } else {
+      container.style.display = 'block';
+      btn.classList.add('active');
+    }
+  }
+
+  // Fungsi buka/tutup tingkat Kelurahan (Data RT muncul tepat di bawahnya)
+  function toggleKelurahan(btn) {
+    var block = btn.parentElement;
+    var container = block.querySelector('.rt-container');
+    
+    if (container.style.display === 'block') {
+      container.style.display = 'none';
+      btn.classList.remove('active');
+    } else {
+      container.style.display = 'block';
+      btn.classList.add('active');
+    }
+  }
+</script>
+
+</body>
+</html>
