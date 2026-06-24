@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pelaksanaan Survei IBANGGA 2026 Kota Banjarmasin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .last-update {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 30px;
+            font-size: 0.85em;
+        }
+
+        /* Dashboard Cards */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+        }
+
+        .card.total::before { background: #e74c3c; }
+        .card.selatan::before { background: #3498db; }
+        .card.timur::before { background: #2ecc71; }
+        .card.barat::before { background: #f39c12; }
+        .card.tengah::before { background: #9b59b6; }
+        .card.utara::before { background: #1abc9c; }
+
+        .card-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-big-number {
+            font-size: 2.8em;
+            font-weight: 800;
+            color: #2c3e50;
+            line-height: 1;
+        }
+
+        .card-sub {
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: #888;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .card-sub .utama { color: #27ae60; font-weight: 700; }
+        .card-sub .pengganti { color: #e74c3c; font-weight: 700; }
+
+        .card-record-count {
+            margin-top: 10px;
+            font-size: 0.75em;
+            color: #999;
+            background: #f0f2f5;
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .filter-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #f0f2f5;
+            padding-bottom: 15px;
+        }
+
+        .filter-header h2 {
+            color: #2c3e50;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 220px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-result {
+            display: none;
+        }
+
+        .filter-result.active {
+            display: block;
+        }
+
+        /* Kecamatan Sections */
+        .kecamatan-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .kecamatan-box {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .kecamatan-header {
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 5px solid;
+        }
+
+        .kecamatan-header.selatan { border-left-color: #3498db; background: linear-gradient(90deg, #ebf5fb 0%, white 100%); }
+        .kecamatan-header.timur { border-left-color: #2ecc71; background: linear-gradient(90deg, #eafaf1 0%, white 100%); }
+        .kecamatan-header.barat { border-left-color: #f39c12; background: linear-gradient(90deg, #fef5e7 0%, white 100%); }
+        .kecamatan-header.tengah { border-left-color: #9b59b6; background: linear-gradient(90deg, #f5eef8 0%, white 100%); }
+        .kecamatan-header.utara { border-left-color: #1abc9c; background: linear-gradient(90deg, #e8f8f5 0%, white 100%); }
+
+        .kecamatan-header:hover {
+            filter: brightness(0.97);
+        }
+
+        .kecamatan-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .kecamatan-stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .kec-stat {
+            text-align: center;
+        }
+
+        .kec-stat-value {
+            font-size: 1.5em;
+            font-weight: 800;
+            color: #2c3e50;
+        }
+
+        .kec-stat-label {
+            font-size: 0.75em;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .toggle-icon {
+            font-size: 1.5em;
+            color: #999;
+            transition: transform 0.3s;
+            margin-left: 15px;
+        }
+
+        .kecamatan-box.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .kecamatan-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .kecamatan-box.expanded .kecamatan-content {
+            max-height: 5000px;
+        }
+
+        .kelurahan-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            padding: 20px 25px;
+        }
+
+        .kelurahan-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .kelurahan-card:hover {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 4px 12px rgba(102,126,234,0.15);
+        }
+
+        .kelurahan-card.active {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 4px 12px rgba(102,126,234,0.2);
+        }
+
+        .kelurahan-name {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .kelurahan-counts {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85em;
+        }
+
+        .kel-count {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .kel-count-value {
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .kel-count.utama .kel-count-value { color: #27ae60; }
+        .kel-count.pengganti .kel-count-value { color: #e74c3c; }
+        .kel-count.total .kel-count-value { color: #3498db; }
+
+        .kelurahan-table-container {
+            padding: 0 25px 25px;
+            display: none;
+        }
+
+        .kelurahan-table-container.active {
+            display: block;
+        }
+
+        /* Data Table */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        th:first-child { border-radius: 8px 0 0 0; }
+        th:last-child { border-radius: 0 8px 0 0; }
+
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            color: #555;
+        }
+
+        tr:hover td {
+            background: #f8f9fa;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+
+        .badge.utama {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.pengganti {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(102,126,234,0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: white;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loading-text {
+            font-size: 1.2em;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-box {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .error-box button {
+            margin-top: 10px;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #dc3545;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .error-box button:hover {
+            background: #c82333;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+            h1 { font-size: 1.5em; }
+            .kecamatan-stats { gap: 10px; }
+            .kec-stat-value { font-size: 1.2em; }
+            .kelurahan-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .kecamatan-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .kecamatan-stats { width: 100%; justify-content: space-between; }
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card, .kecamatan-box {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+        .card:nth-child(5) { animation-delay: 0.5s; }
+        .card:nth-child(6) { animation-delay: 0.6s; }
+
+        .kecamatan-box:nth-child(1) { animation-delay: 0.1s; }
+        .kecamatan-box:nth-child(2) { animation-delay: 0.2s; }
+        .kecamatan-box:nth-child(3) { animation-delay: 0.3s; }
+        .kecamatan-box:nth-child(4) { animation-delay: 0.4s; }
+        .kecamatan-box:nth-child(5) { animation-delay: 0.5s; }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Memuat data dari Google Sheets...</div>
+    </div>
+
+    <div class="container">
+        <h1>📊 Dashboard Pelaksanaan Survei IBANGGA 2026 Kota Banjarmasin</h1>
+        <div class="subtitle">Monitoring Pelaksanaan Survei IBANGGA 2026 - Sampel Utama & Pengganti per Kecamatan & Kelurahan</div>
+        <div class="last-update" id="lastUpdate">-</div>
+
+        <div id="errorBox" class="error-box" style="display:none;">
+            <div id="errorMessage"></div>
+            <button onclick="fetchData()">🔄 Coba Lagi</button>
+        </div>
+
+        <div id="dashboard" style="display:none;">
+            <!-- Dashboard Cards -->
+            <div class="dashboard-grid" id="dashboardGrid"></div>
+
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <div class="filter-header">
+                    <h2>🔍 Filter Cepat</h2>
+                    <select id="kecamatanSelect">
+                        <option value="">Semua Kecamatan</option>
+                        <option value="Banjarmasin Selatan">Banjarmasin Selatan</option>
+                        <option value="Banjarmasin Timur">Banjarmasin Timur</option>
+                        <option value="Banjarmasin Barat">Banjarmasin Barat</option>
+                        <option value="Banjarmasin Tengah">Banjarmasin Tengah</option>
+                        <option value="Banjarmasin Utara">Banjarmasin Utara</option>
+                    </select>
+                    <select id="kelurahanSelect" style="display:none;">
+                        <option value="">Semua Kelurahan</option>
+                    </select>
+                </div>
+                <div class="filter-result" id="filterResult"></div>
+            </div>
+
+            <!-- Kecamatan Sections (Expandable) -->
+            <div class="kecamatan-sections" id="kecamatanSections"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION - Sesuaikan dengan struktur CSV
+        // ============================================
+        const SPREADSHEET_ID = '18vgfzGtDRClH81EaHz1omKZ0iKFncdLWETTTxzLCsGQ';
+        const SHEET_GID = '472169699';
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+
+        // Column indices (0-based)
+        const COL = {
+            JENIS_SAMPEL: 9,    // Kolom J
+            KECAMATAN: 14,       // Kolom O
+            KEL_TIMUR: 15,       // Kolom P - BJM Timur
+            KEL_TENGAH: 16,      // Kolom Q - BJM Tengah
+            KEL_SELATAN: 17,     // Kolom R - BJM Selatan
+            KEL_BARAT: 18,       // Kolom S - BJM Barat
+            KEL_UTARA: 19,       // Kolom T - BJM Utara
+            VAR_L: 11,           // Kolom L
+            VAR_M: 12,           // Kolom M
+            VAR_N: 13,           // Kolom N
+            VAR_U: 20,           // Kolom U
+            VAR_V: 21,           // Kolom V
+            VAR_W: 22,           // Kolom W
+            VAR_X: 23,           // Kolom X
+            VAR_Y: 24            // Kolom Y
+        };
+
+        const KECAMATAN_KEL_COL = {
+            'Banjarmasin Selatan': COL.KEL_SELATAN,
+            'Banjarmasin Timur': COL.KEL_TIMUR,
+            'Banjarmasin Barat': COL.KEL_BARAT,
+            'Banjarmasin Tengah': COL.KEL_TENGAH,
+            'Banjarmasin Utara': COL.KEL_UTARA
+        };
+
+        const KECAMATAN_CLASS = {
+            'Banjarmasin Selatan': 'selatan',
+            'Banjarmasin Timur': 'timur',
+            'Banjarmasin Barat': 'barat',
+            'Banjarmasin Tengah': 'tengah',
+            'Banjarmasin Utara': 'utara'
+        };
+
+        const KECAMATAN_ORDER = [
+            'Banjarmasin Selatan',
+            'Banjarmasin Timur', 
+            'Banjarmasin Barat',
+            'Banjarmasin Tengah',
+            'Banjarmasin Utara'
+        ];
+
+        let allData = [];
+        let headers = [];
+        let activeKelurahan = null; // {kecamatan, kelurahan, element}
+
+        // ============================================
+        // CSV PARSER
+        // ============================================
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim());
+            const result = [];
+
+            for (const line of lines) {
+                const row = [];
+                let current = '';
+                let inQuotes = false;
+
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') {
+                        if (inQuotes && line[i + 1] === '"') {
+                            current += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                row.push(current.trim());
+                result.push(row);
+            }
+            return result;
+        }
+
+        // ============================================
+        // DATA FETCHING
+        // ============================================
+        const FALLBACK_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8xTNCWf6l6ZS6DggkSN8Nh3mPy-oesPyM9xvBmS5T2rLKt5yehQP7H7sXgk38rJTMVuLY6MyIQeKI/pub?output=csv';
+
+        async function fetchCsvText(url) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            try {
+                const response = await fetch(url, {
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const text = await response.text();
+                if (!text || text.trim().length === 0) throw new Error('Respons kosong');
+                // gviz csv kadang membungkus nilai dengan format aneh saat error; deteksi halaman HTML/login
+                if (text.trim().startsWith('<')) throw new Error('Respons bukan CSV (kemungkinan halaman login/error)');
+                return text;
+            } catch (err) {
+                clearTimeout(timeoutId);
+                throw err;
+            }
+        }
+
+        async function fetchData() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('errorBox').style.display = 'none';
+
+            let text;
+            let lastError;
+
+            // Coba endpoint utama (gviz), lalu fallback ke endpoint publish CSV
+            for (const url of [CSV_URL, FALLBACK_CSV_URL]) {
+                try {
+                    text = await fetchCsvText(url);
+                    lastError = null;
+                    break;
+                } catch (err) {
+                    lastError = err;
+                }
+            }
+
+            try {
+                if (lastError) throw lastError;
+
+                const data = parseCSV(text);
+                if (data.length < 2) {
+                    throw new Error('Data CSV tidak valid (kurang dari 2 baris)');
+                }
+
+                headers = data[0];
+                allData = data.slice(1).filter(row => row.length > 1 && row[0] && row[0].trim());
+
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                document.getElementById('lastUpdate').textContent = 
+                    '📅 Terakhir diperbarui: ' + new Date().toLocaleString('id-ID', {
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                    });
+
+                renderDashboard();
+                renderKecamatanSections();
+
+            } catch (error) {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('errorBox').style.display = 'block';
+                document.getElementById('errorMessage').innerHTML = 
+                    '<strong>❌ Error:</strong> ' + error.message + 
+                    '<br><br><small>Pastikan Google Sheets sudah dipublikasikan ke web (File → Share → Publish to web) dan dapat diakses publik.</small>';
+                console.error('Fetch data gagal:', error);
+            }
+        }
+
+        // ============================================
+        // DASHBOARD CARDS
+        // ============================================
+        function countByKecamatan() {
+            const counts = {
+                'Total': { total: 0, utama: 0, pengganti: 0 },
+                'Banjarmasin Selatan': { total: 0, utama: 0, pengganti: 0 },
+                'Banjarmasin Timur': { total: 0, utama: 0, pengganti: 0 },
+                'Banjarmasin Barat': { total: 0, utama: 0, pengganti: 0 },
+                'Banjarmasin Tengah': { total: 0, utama: 0, pengganti: 0 },
+                'Banjarmasin Utara': { total: 0, utama: 0, pengganti: 0 }
+            };
+
+            allData.forEach(row => {
+                const jenis = (row[COL.JENIS_SAMPEL] || '').toLowerCase();
+                const kec = row[COL.KECAMATAN] || '';
+
+                counts['Total'].total++;
+                if (jenis.includes('utama')) counts['Total'].utama++;
+                else if (jenis.includes('pengganti')) counts['Total'].pengganti++;
+
+                if (counts[kec]) {
+                    counts[kec].total++;
+                    if (jenis.includes('utama')) counts[kec].utama++;
+                    else if (jenis.includes('pengganti')) counts[kec].pengganti++;
+                }
+            });
+
+            return counts;
+        }
+
+        function renderDashboard() {
+            const counts = countByKecamatan();
+            const grid = document.getElementById('dashboardGrid');
+
+            const items = [
+                { key: 'Total', label: 'TOTAL', class: 'total' },
+                { key: 'Banjarmasin Selatan', label: 'BJM SELATAN', class: 'selatan' },
+                { key: 'Banjarmasin Timur', label: 'BJM TIMUR', class: 'timur' },
+                { key: 'Banjarmasin Barat', label: 'BJM BARAT', class: 'barat' },
+                { key: 'Banjarmasin Tengah', label: 'BJM TENGAH', class: 'tengah' },
+                { key: 'Banjarmasin Utara', label: 'BJM UTARA', class: 'utara' }
+            ];
+
+            grid.innerHTML = items.map(item => {
+                const c = counts[item.key];
+                return `
+                    <div class="card ${item.class}" onclick="scrollToKecamatan('${item.key}')">
+                        <div class="card-label">${item.label}</div>
+                        <div class="card-big-number">${c.total}</div>
+                        <div class="card-sub">
+                            <span class="utama">${c.utama} Utama</span>
+                            <span class="pengganti">${c.pengganti} Pengganti</span>
+                        </div>
+                        <div class="card-record-count">${c.total} record</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function scrollToKecamatan(kecamatan) {
+            if (kecamatan === 'Total') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+            const el = document.getElementById('kec-' + kecamatan.replace(/\s+/g, '-'));
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Auto expand
+                if (!el.classList.contains('expanded')) {
+                    toggleKecamatan(kecamatan);
+                }
+            }
+        }
+
+        // ============================================
+        // KECAMATAN SECTIONS (EXPANDABLE)
+        // ============================================
+        function getKelurahanData(kecamatan) {
+            const kelCol = KECAMATAN_KEL_COL[kecamatan];
+            const kelurahanMap = {};
+
+            allData.forEach(row => {
+                if (row[COL.KECAMATAN] === kecamatan) {
+                    const kel = (row[kelCol] || '').trim();
+                    if (!kel) return;
+
+                    if (!kelurahanMap[kel]) {
+                        kelurahanMap[kel] = { total: 0, utama: 0, pengganti: 0, records: [] };
+                    }
+
+                    kelurahanMap[kel].total++;
+                    kelurahanMap[kel].records.push(row);
+
+                    const jenis = (row[COL.JENIS_SAMPEL] || '').toLowerCase();
+                    if (jenis.includes('utama')) kelurahanMap[kel].utama++;
+                    else if (jenis.includes('pengganti')) kelurahanMap[kel].pengganti++;
+                }
+            });
+
+            return kelurahanMap;
+        }
+
+        function renderKecamatanSections() {
+            const container = document.getElementById('kecamatanSections');
+            container.innerHTML = '';
+
+            KECAMATAN_ORDER.forEach(kecamatan => {
+                const kelurahanMap = getKelurahanData(kecamatan);
+                const kelurahanList = Object.keys(kelurahanMap).sort();
+                const kecClass = KECAMATAN_CLASS[kecamatan];
+                const kecId = kecamatan.replace(/\s+/g, '-');
+
+                const totalKec = allData.filter(r => r[COL.KECAMATAN] === kecamatan).length;
+                const utamaKec = allData.filter(r => r[COL.KECAMATAN] === kecamatan && 
+                    (r[COL.JENIS_SAMPEL] || '').toLowerCase().includes('utama')).length;
+                const penggantiKec = totalKec - utamaKec;
+
+                const kelCards = kelurahanList.map(kel => {
+                    const k = kelurahanMap[kel];
+                    return `
+                        <div class="kelurahan-card" id="kel-${kecId}-${kel.replace(/\s+/g, '-')}"
+                             onclick="showKelurahanTable('${kecamatan}', '${kel}', this)">
+                            <div class="kelurahan-name">${kel}</div>
+                            <div class="kelurahan-counts">
+                                <div class="kel-count total">
+                                    <span>Total:</span>
+                                    <span class="kel-count-value">${k.total}</span>
+                                </div>
+                                <div class="kel-count utama">
+                                    <span>Utama:</span>
+                                    <span class="kel-count-value">${k.utama}</span>
+                                </div>
+                                <div class="kel-count pengganti">
+                                    <span>Pengganti:</span>
+                                    <span class="kel-count-value">${k.pengganti}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                const html = `
+                    <div class="kecamatan-box" id="kec-${kecId}">
+                        <div class="kecamatan-header ${kecClass}" onclick="toggleKecamatan('${kecamatan}')">
+                            <div>
+                                <div class="kecamatan-title">${kecamatan}</div>
+                                <div style="font-size:0.85em;color:#888;margin-top:4px;">
+                                    ${kelurahanList.length} Kelurahan
+                                </div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:15px;">
+                                <div class="kecamatan-stats">
+                                    <div class="kec-stat">
+                                        <div class="kec-stat-value">${totalKec}</div>
+                                        <div class="kec-stat-label">Total</div>
+                                    </div>
+                                    <div class="kec-stat">
+                                        <div class="kec-stat-value" style="color:#27ae60;">${utamaKec}</div>
+                                        <div class="kec-stat-label">Utama</div>
+                                    </div>
+                                    <div class="kec-stat">
+                                        <div class="kec-stat-value" style="color:#e74c3c;">${penggantiKec}</div>
+                                        <div class="kec-stat-label">Pengganti</div>
+                                    </div>
+                                </div>
+                                <div class="toggle-icon">▼</div>
+                            </div>
+                        </div>
+                        <div class="kecamatan-content">
+                            <div class="kelurahan-grid">
+                                ${kelCards}
+                            </div>
+                            <div class="kelurahan-table-container" id="table-${kecId}">
+                                <div class="table-wrapper">
+                                    <table>
+                                        <thead>
+                                            <tr id="thead-${kecId}"></tr>
+                                        </thead>
+                                        <tbody id="tbody-${kecId}"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.innerHTML += html;
+            });
+        }
+
+        function toggleKecamatan(kecamatan) {
+            const kecId = kecamatan.replace(/\s+/g, '-');
+            const box = document.getElementById('kec-' + kecId);
+            box.classList.toggle('expanded');
+        }
+
+        function showKelurahanTable(kecamatan, kelurahan, cardElement) {
+            const kecId = kecamatan.replace(/\s+/g, '-');
+            const tableContainer = document.getElementById('table-' + kecId);
+            const kelCol = KECAMATAN_KEL_COL[kecamatan];
+
+            // Remove active from all cards in this kecamatan
+            const allCards = cardElement.parentElement.querySelectorAll('.kelurahan-card');
+            allCards.forEach(c => c.classList.remove('active'));
+            cardElement.classList.add('active');
+
+            // Filter records
+            const records = allData.filter(row => 
+                row[COL.KECAMATAN] === kecamatan && 
+                (row[kelCol] || '').trim() === kelurahan
+            );
+
+            // Build table header
+            const thead = document.getElementById('thead-' + kecId);
+            const varCols = [COL.VAR_L, COL.VAR_M, COL.VAR_N, COL.VAR_U, COL.VAR_V, COL.VAR_W, COL.VAR_X, COL.VAR_Y];
+            const varHeaders = varCols.map(i => headers[i] || `Kolom ${String.fromCharCode(65+i)}`).filter(h => h);
+
+            thead.innerHTML = '<th>No</th><th>Nama</th><th>Jenis Sampel</th>' + 
+                varHeaders.map(h => `<th>${h}</th>`).join('');
+
+            // Build table body
+            const tbody = document.getElementById('tbody-' + kecId);
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${3 + varHeaders.length}" class="no-data">Tidak ada data</td></tr>`;
+            } else {
+                tbody.innerHTML = records.map((row, idx) => {
+                    const jenis = row[COL.JENIS_SAMPEL] || '';
+                    const badgeClass = jenis.toLowerCase().includes('utama') ? 'utama' : 
+                                      jenis.toLowerCase().includes('pengganti') ? 'pengganti' : '';
+
+                    const vars = varCols.map(i => `<td>${row[i] || '-'}</td>`).join('');
+
+                    return `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td>${row[1] || '-'}</td>
+                            <td><span class="badge ${badgeClass}">${jenis}</span></td>
+                            ${vars}
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            tableContainer.classList.add('active');
+
+            // Scroll to table
+            setTimeout(() => {
+                tableContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        // ============================================
+        // FILTER DROPDOWN
+        // ============================================
+        function updateKelurahanDropdown() {
+            const kecamatan = document.getElementById('kecamatanSelect').value;
+            const kelSelect = document.getElementById('kelurahanSelect');
+            const resultDiv = document.getElementById('filterResult');
+
+            resultDiv.classList.remove('active');
+
+            if (!kecamatan) {
+                kelSelect.style.display = 'none';
+                return;
+            }
+
+            const kelCol = KECAMATAN_KEL_COL[kecamatan];
+            const kelurahanSet = new Set();
+
+            allData.forEach(row => {
+                if (row[COL.KECAMATAN] === kecamatan) {
+                    const kel = (row[kelCol] || '').trim();
+                    if (kel) kelurahanSet.add(kel);
+                }
+            });
+
+            const kelurahanList = Array.from(kelurahanSet).sort();
+            kelSelect.innerHTML = '<option value="">Semua Kelurahan</option>' +
+                kelurahanList.map(k => `<option value="${k}">${k}</option>`).join('');
+            kelSelect.style.display = 'inline-block';
+        }
+
+        function showFilterResult() {
+            const kecamatan = document.getElementById('kecamatanSelect').value;
+            const kelurahan = document.getElementById('kelurahanSelect').value;
+            const resultDiv = document.getElementById('filterResult');
+
+            if (!kecamatan) {
+                resultDiv.classList.remove('active');
+                return;
+            }
+
+            let filtered = allData.filter(r => r[COL.KECAMATAN] === kecamatan);
+            if (kelurahan) {
+                const kelCol = KECAMATAN_KEL_COL[kecamatan];
+                filtered = filtered.filter(r => (r[kelCol] || '').trim() === kelurahan);
+            }
+
+            const total = filtered.length;
+            const utama = filtered.filter(r => (r[COL.JENIS_SAMPEL] || '').toLowerCase().includes('utama')).length;
+            const pengganti = total - utama;
+
+            const varCols = [COL.VAR_L, COL.VAR_M, COL.VAR_N, COL.VAR_U, COL.VAR_V, COL.VAR_W, COL.VAR_X, COL.VAR_Y];
+            const varHeaders = varCols.map(i => headers[i] || `Kolom ${String.fromCharCode(65+i)}`).filter(h => h);
+
+            let tableHtml = `
+                <div style="margin-bottom:15px;padding:15px;background:#f8f9fa;border-radius:8px;">
+                    <strong>${kecamatan}</strong>${kelurahan ? ' - ' + kelurahan : ''}
+                    <span style="margin-left:20px;">
+                        <span style="color:#3498db;font-weight:700;">${total} Total</span> | 
+                        <span style="color:#27ae60;font-weight:700;">${utama} Utama</span> | 
+                        <span style="color:#e74c3c;font-weight:700;">${pengganti} Pengganti</span>
+                    </span>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr><th>No</th><th>Nama</th><th>Jenis Sampel</th>${varHeaders.map(h => `<th>${h}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            if (filtered.length === 0) {
+                tableHtml += `<tr><td colspan="${3 + varHeaders.length}" class="no-data">Tidak ada data</td></tr>`;
+            } else {
+                tableHtml += filtered.map((row, idx) => {
+                    const jenis = row[COL.JENIS_SAMPEL] || '';
+                    const badgeClass = jenis.toLowerCase().includes('utama') ? 'utama' : 
+                                      jenis.toLowerCase().includes('pengganti') ? 'pengganti' : '';
+                    const vars = varCols.map(i => `<td>${row[i] || '-'}</td>`).join('');
+                    return `<tr><td>${idx + 1}</td><td>${row[1] || '-'}</td><td><span class="badge ${badgeClass}">${jenis}</span></td>${vars}</tr>`;
+                }).join('');
+            }
+
+            tableHtml += '</tbody></table></div>';
+            resultDiv.innerHTML = tableHtml;
+            resultDiv.classList.add('active');
+        }
+
+        // Event listeners
+        document.getElementById('kecamatanSelect').addEventListener('change', () => {
+            updateKelurahanDropdown();
+            showFilterResult();
+        });
+        document.getElementById('kelurahanSelect').addEventListener('change', showFilterResult);
+
+        // Initialize
+        fetchData();
+    </script>
+</body>
+</html>
