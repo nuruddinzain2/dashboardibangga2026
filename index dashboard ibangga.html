@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>Monitoring Pelaksanaan Lapangan</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+min-height: 100vh;
+padding: 20px;
+}
+.container {
+max-width: 1400px;
+margin: 0 auto;
+width: 100%;
+}
+h1 {
+text-align: center;
+color: white;
+margin-bottom: 10px;
+font-size: 2.2em;
+text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+.subtitle {
+text-align: center;
+color: rgba(255,255,255,0.8);
+margin-bottom: 10px;
+font-size: 1em;
+}
+.last-update {
+text-align: center;
+color: rgba(255,255,255,0.7);
+margin-bottom: 30px;
+font-size: 0.85em;
+}
+.dashboard-grid {
+display: grid;
+grid-template-columns: repeat(6, 1fr);
+gap: 15px;
+margin-bottom: 30px;
+}
+.card {
+background: white;
+border-radius: 16px;
+padding: 20px;
+text-align: center;
+cursor: pointer;
+transition: all 0.3s ease;
+box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+position: relative;
+overflow: hidden;
+}
+.card:hover {
+transform: translateY(-5px);
+box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+.card::before {
+content: '';
+position: absolute;
+top: 0; left: 0; right: 0;
+height: 4px;
+}
+.card.total::before { background: #e74c3c; }
+.card.selatan::before { background: #3498db; }
+.card.timur::before { background: #2ecc71; }
+.card.barat::before { background: #f39c12; }
+.card.tengah::before { background: #9b59b6; }
+.card.utara::before { background: #1abc9c; }
+.card-label {
+font-size: 0.8em;
+color: #666;
+margin-bottom: 8px;
+font-weight: 700;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+.card-big-number {
+font-size: 2.8em;
+font-weight: 800;
+color: #2c3e50;
+line-height: 1;
+}
+.card-sub {
+margin-top: 10px;
+font-size: 0.8em;
+color: #888;
+display: flex;
+justify-content: center;
+gap: 10px;
+flex-wrap: wrap;
+}
+.card-sub .utama { color: #27ae60; font-weight: 700; }
+.card-sub .pengganti { color: #e74c3c; font-weight: 700; }
+.card-sub-grid {
+display: inline-block;
+}
+.card-record-count {
+margin-top: 10px;
+font-size: 0.75em;
+color: #999;
+background: #f0f2f5;
+padding: 4px 10px;
+border-radius: 12px;
+display: inline-block;
+}
+.filter-section {
+background: white;
+border-radius: 16px;
+padding: 25px;
+margin-bottom: 25px;
+box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.filter-header {
+display: flex;
+align-items: center;
+gap: 15px;
+margin-bottom: 20px;
+flex-wrap: wrap;
+border-bottom: 2px solid #f0f2f5;
+padding-bottom: 15px;
+}
+.filter-header h2 {
+color: #2c3e50;
+font-size: 1.2em;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+select {
+padding: 10px 15px;
+border: 2px solid #e0e0e0;
+border-radius: 8px;
+font-size: 1em;
+background: white;
+cursor: pointer;
+transition: all 0.3s;
+min-width: 220px;
+}
+select:focus {
+outline: none;
+border-color: #667eea;
+}
+.filter-result {
+display: none;
+}
+.filter-result.active {
+display: block;
+}
+.kecamatan-sections {
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+.kecamatan-box {
+background: white;
+border-radius: 16px;
+box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+overflow: hidden;
+}
+.kecamatan-header {
+padding: 20px 25px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+cursor: pointer;
+transition: all 0.3s;
+border-left: 5px solid;
+}
+.kecamatan-header.selatan { border-left-color: #3498db; background: linear-gradient(90deg, #ebf5fb 0%, white 100%); }
+.kecamatan-header.timur { border-left-color: #2ecc71; background: linear-gradient(90deg, #eafaf1 0%, white 100%); }
+.kecamatan-header.barat { border-left-color: #f39c12; background: linear-gradient(90deg, #fef5e7 0%, white 100%); }
+.kecamatan-header.tengah { border-left-color: #9b59b6; background: linear-gradient(90deg, #f5eef8 0%, white 100%); }
+.kecamatan-header.utara { border-left-color: #1abc9c; background: linear-gradient(90deg, #e8f8f5 0%, white 100%); }
+.kecamatan-header:hover {
+filter: brightness(0.97);
+}
+.kecamatan-title {
+font-size: 1.3em;
+font-weight: 700;
+color: #2c3e50;
+text-transform: uppercase;
+}
+.kecamatan-stats {
+display: flex;
+gap: 20px;
+align-items: center;
+}
+.kec-stat {
+text-align: center;
+}
+.kec-stat-value {
+font-size: 1.5em;
+font-weight: 800;
+color: #2c3e50;
+}
+.kec-stat-label {
+font-size: 0.75em;
+color: #888;
+text-transform: uppercase;
+}
+.toggle-icon {
+font-size: 1.5em;
+color: #999;
+transition: transform 0.3s;
+margin-left: 15px;
+}
+.kecamatan-box.expanded .toggle-icon {
+transform: rotate(180deg);
+}
+.kecamatan-content {
+max-height: 0;
+overflow: hidden;
+transition: max-height 0.5s ease;
+}
+.kecamatan-box.expanded .kecamatan-content {
+max-height: 20000px;
+}
+.kelurahan-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+gap: 15px;
+padding: 20px 25px;
+}
+.kelurahan-wrapper {
+display: contents;
+}
+.kelurahan-card {
+background: #f8f9fa;
+border-radius: 12px;
+padding: 15px;
+border: 2px solid transparent;
+transition: all 0.3s;
+cursor: pointer;
+}
+.kelurahan-card:hover {
+border-color: #667eea;
+background: white;
+box-shadow: 0 4px 12px rgba(102,126,234,0.15);
+}
+.kelurahan-card.active {
+border-color: #667eea;
+background: white;
+box-shadow: 0 4px 12px rgba(102,126,234,0.2);
+}
+.kelurahan-name {
+font-weight: 700;
+color: #2c3e50;
+font-size: 1.1em;
+margin-bottom: 8px;
+}
+.kelurahan-counts {
+display: flex;
+gap: 15px;
+font-size: 0.85em;
+}
+.kel-count {
+display: flex;
+align-items: center;
+gap: 5px;
+}
+.kel-count-value {
+font-weight: 700;
+font-size: 1.1em;
+}
+.kel-count.utama .kel-count-value { color: #27ae60; }
+.kel-count.pengganti .kel-count-value { color: #e74c3c; }
+.kel-count.total .kel-count-value { color: #3498db; }
+.kelurahan-table-container {
+padding: 0 25px 25px;
+display: none;
+grid-column: 1 / -1;
+margin-top: 5px;
+margin-bottom: 15px;
+width: 100%;
+overflow: hidden;
+}
+.kelurahan-table-container.active {
+display: block;
+}
+.table-wrapper {
+width: 100%;
+overflow-x: auto;
+border-radius: 8px;
+border: 1px solid #e0e0e0;
+background: white;
+-webkit-overflow-scrolling: touch;
+}
+table {
+width: 100%;
+border-collapse: collapse;
+font-size: 0.9em;
+min-width: 800px;
+}
+th {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+color: white;
+padding: 12px 15px;
+text-align: left;
+font-weight: 600;
+font-size: 0.85em;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+white-space: nowrap;
+}
+td {
+padding: 10px 15px;
+border-bottom: 1px solid #eee;
+color: #555;
+white-space: nowrap;
+}
+tr:hover td { background: #f8f9fa; }
+tr:nth-child(even) { background: #fafafa; }
+.badge {
+display: inline-block;
+padding: 4px 12px;
+border-radius: 12px;
+font-size: 0.8em;
+font-weight: 700;
+}
+.badge.utama { background: #d4edda; color: #155724; }
+.badge.pengganti { background: #f8d7da; color: #721c24; }
+.no-data {
+text-align: center;
+padding: 40px;
+color: #999;
+font-size: 1.1em;
+}
+.loading-overlay {
+position: fixed;
+top: 0; left: 0; right: 0; bottom: 0;
+background: rgba(102,126,234,0.95);
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+z-index: 9999;
+color: white;
+padding: 20px;
+text-align: center;
+}
+.loading-spinner {
+width: 50px; height: 50px;
+border: 4px solid rgba(255,255,255,0.3);
+border-radius: 50%; border-top-color: white;
+animation: spin 1s linear infinite; margin-bottom: 20px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-box {
+background: #f8d7da; color: #721c24; padding: 20px;
+border-radius: 12px; text-align: center; margin: 20px 0; border: 1px solid #f5c6cb;
+}
+.error-box button {
+margin-top: 10px; padding: 8px 20px; border: none; border-radius: 6px;
+background: #dc3545; color: white; cursor: pointer;
+}
+@media (max-width: 1100px) {
+.dashboard-grid {
+grid-template-columns: repeat(3, 1fr);
+}
+}
+@media (max-width: 768px) {
+body { padding: 12px; }
+h1 { font-size: 1.6em; }
+.dashboard-grid {
+grid-template-columns: repeat(2, 1fr);
+gap: 10px;
+}
+.card { padding: 12px 8px; }
+.card-big-number { font-size: 2em; }
+.filter-section { padding: 15px; }
+.filter-header {
+flex-direction: column;
+align-items: stretch;
+gap: 10px;
+}
+select { width: 100%; min-width: unset; }
+.kecamatan-header {
+padding: 15px;
+flex-direction: column;
+align-items: flex-start;
+gap: 12px;
+}
+.kecamatan-stats {
+width: 100%;
+justify-content: space-between;
+}
+.toggle-icon {
+position: absolute;
+right: 15px;
+top: 20px;
+}
+.kecamatan-box { position: relative; }
+.kelurahan-grid {
+grid-template-columns: 1fr;
+padding: 15px;
+gap: 10px;
+}
+.kelurahan-table-container {
+padding: 0 10px 15px;
+}
+}
+@media (max-width: 380px) {
+.dashboard-grid {
+grid-template-columns: 1fr;
+}
+}
+</style>
+</head>
+<body>
+<div class="loading-overlay" id="loadingOverlay">
+<div class="loading-spinner"></div>
+<div class="loading-text">Memuat data dan mengurutkan struktur hierarki...</div>
+</div>
+<div class="container">
+<h1>📊 Hasil Monitoring Pelaksanaan Lapangan</h1>
+<div class="subtitle">Monitoring Pelaksanaan Lapangan</div>
+<div class="last-update" id="lastUpdate">-</div>
+<div id="errorBox" class="error-box" style="display:none;">
+<div id="errorMessage"></div>
+<button onclick="fetchData()">🔄 Coba Lagi</button>
+</div>
+<div id="dashboard" style="display:none;">
+<div class="dashboard-grid" id="dashboardGrid"></div>
+<div class="filter-section">
+<div class="filter-header">
+<h2>🔍 Filter Cepat</h2>
+<select id="kecamatanSelect">
+<option value="">Semua Kecamatan</option>
+<option value="banjarmasin_selatan">Banjarmasin Selatan</option>
+<option value="banjarmasin_timur">Banjarmasin Timur</option>
+<option value="banjarmasin_barat">Banjarmasin Barat</option>
+<option value="banjarmasin_tengah">Banjarmasin Tengah</option>
+<option value="banjarmasin_utara">Banjarmasin Utara</option>
+</select>
+<select id="kelurahanSelect" style="display:none;"></select>
+</div>
+<div class="filter-result" id="filterResult"></div>
+</div>
+<div class="kecamatan-sections" id="kecamatanSections"></div>
+</div>
+</div>
+<script>
+const PORTAL_URL = 'https://script.google.com/macros/s/AKfycbxvobKQXr2BSDni30i9NHEn6AYenz4m5rqTAbrkYto31JUUX8xhJOjXJ3zrFscLFsS6-A/exec';
+const DATA_URL = `${PORTAL_URL}?action=getDashboardData`;
+const COL = {
+JENIS_SAMPEL: 9,
+KECAMATAN: 14,
+START_KEL: 15,
+END_KEL: 19,
+VAR_L: 11, VAR_M: 12, VAR_N: 13,
+VAR_U: 20, VAR_V: 21, VAR_W: 22, VAR_X: 23, VAR_Y: 24,
+NO_RT_TERPILIH: 20,
+RESPONDEN_KE: 23
+};
+
+const KECAMATAN_NAME_TO_DISPLAY = {
+  'banjarmasin_timur':   'banjarmasin_selatan',
+  'banjarmasin_tengah':  'banjarmasin_timur',
+  'banjarmasin_selatan': 'banjarmasin_barat',
+  'banjarmasi_barat':    'banjarmasin_tengah',
+  'banjarmasin_barat':   'banjarmasin_tengah',
+  'banjarmasin_utara':   'banjarmasin_utara'
+};
+
+const KELURAHAN_MAPPER = {
+  'banjarmasin_selatan': {
+    '1': 'MANTUIL', '2': 'KELAYAN SELATAN', '3': 'KELAYAN TIMUR', '4': 'TANJUNG PAGAR',
+    '5': 'PEMURUS DALAM', '6': 'PEMURUS BARU', '7': 'MURUNG RAYA', '8': 'KELAYAN DALAM',
+    '9': 'KELAYAN TENGAH', '10': 'PEKAUMAN', '11': 'KELAYAN BARAT', '12': 'BASIRIH SELATAN'
+  },
+  'banjarmasin_timur': {
+    '1': 'PEKAPURAN RAYA', '2': 'KARANG MEKAR', '3': 'KEBUN BUNGA', '4': 'SUNGAI LULUT',
+    '5': 'KURIPAN', '6': 'SUNGAI BILU', '7': 'PENGAMBANGAN', '8': 'BANUA ANYAR', '9': 'PEMURUS LUAR'
+  },
+  'banjarmasin_barat': {
+    '1': 'TELUK TIRAM', '2': 'TELAWANG', '3': 'TELAGA BIRU', '4': 'PELAMBUAN',
+    '5': 'BELITUNG SELATAN', '6': 'BELITUNG UTARA', '7': 'BASIRIH', '8': 'KUIN CERUCUK', '9': 'KUIN SELATAN'
+  },
+  'banjarmasin_tengah': {
+    '1': 'KELAYAN LUAR', '2': 'KERTAK BARU ILIR', '3': 'MAWAR', '4': 'TELUK DALAM',
+    '5': 'KERTAK BARU ULU', '6': 'PEKAPURAN LAUT', '7': 'SUNGAI BARU', '8': 'GADANG',
+    '9': 'ANTASAN BESAR', '10': 'PASAR LAMA', '11': 'SEBERANG MESJID', '12': 'MELAYU'
+  },
+  'banjarmasin_utara': {
+    '1': 'KUIN UTARA', '2': 'PANGERAN', '3': 'SUNGAI MIAI', '4': 'ANTASAN KECIL TIMUR',
+    '5': 'SURGI MUFTI', '6': 'SUNGAI JINGAH', '7': 'ALALAK UTARA', '8': 'ALALAK SELATAN',
+    '9': 'ALALAK TENGAH', '10': 'SUNGAI ANDAI'
+  }
+};
+
+const REVERSE_KELURAHAN_LOOKUP = {};
+Object.keys(KELURAHAN_MAPPER).forEach(kec => {
+  Object.values(KELURAHAN_MAPPER[kec]).forEach(kelName => {
+    REVERSE_KELURAHAN_LOOKUP[kelName] = kec;
+  });
+});
+const KECAMATAN_CLASS = {
+  'banjarmasin_selatan': 'selatan', 'banjarmasin_timur': 'timur',
+  'banjarmasin_barat': 'barat', 'banjarmasin_tengah': 'tengah', 'banjarmasin_utara': 'utara'
+};
+const KECAMATAN_ORDER = [
+  'banjarmasin_selatan', 'banjarmasin_timur', 'banjarmasin_barat', 'banjarmasin_tengah', 'banjarmasin_utara'
+];
+let allData = [];
+let headers = [];
+
+function extractAndValidateRow(row) {
+  let rawKecName = (row[COL.KECAMATAN] || '').toLowerCase().trim().replace(/\s+/g, '_');
+  let displayKec = KECAMATAN_NAME_TO_DISPLAY[rawKecName] || rawKecName;
+
+  let detectedKelurahan = null;
+  for (let i = COL.START_KEL; i <= COL.END_KEL; i++) {
+    let val = (row[i] || '').trim();
+    if (val && val !== '-') {
+      if (/^option_\d+$/i.test(val)) {
+        let optNum = val.match(/\d+/)[0];
+        if (KELURAHAN_MAPPER[displayKec] && KELURAHAN_MAPPER[displayKec][optNum]) {
+          detectedKelurahan = KELURAHAN_MAPPER[displayKec][optNum];
+          break;
+        }
+      }
+      if (val.includes('__')) {
+        let clean = val.split('__')[1] || val;
+        detectedKelurahan = clean.replace(/_/g, ' ').toUpperCase();
+        break;
+      }
+      detectedKelurahan = val.replace(/_/g, ' ').toUpperCase();
+      break;
+    }
+  }
+  if (!detectedKelurahan) {
+    return { kecamatan: displayKec, kelurahan: 'TIDAK TERIDENTIFIKASI' };
+  }
+  let trueKecamatan = REVERSE_KELURAHAN_LOOKUP[detectedKelurahan];
+  if (trueKecamatan && trueKecamatan !== displayKec) {
+    return { kecamatan: trueKecamatan, kelurahan: detectedKelurahan, isCorrected: true };
+  }
+  return { kecamatan: displayKec, kelurahan: detectedKelurahan, isCorrected: false };
+}
+
+function detectHeaderIndices() {
+  headers.forEach((header, idx) => {
+    const text = (header || '').toUpperCase().trim();
+    if (text === 'NO_RT_TERPILIH' || text === 'NO RT TERPILIH' || text === 'RT') {
+      COL.NO_RT_TERPILIH = idx;
+    }
+    if (text === 'RESPONDEN_TERPILIH_KE' || text === 'RESPONDEN_KE' || text === 'NO URUT RESPONDEN') {
+      COL.RESPONDEN_KE = idx;
+    }
+  });
+}
+function parseCSV(text) {
+  const lines = text.split('\n').filter(line => line.trim());
+  const result = [];
+  for (const line of lines) {
+    const row = []; let current = ''; let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; } else { inQuotes = !inQuotes; }
+      } else if (char === ',' && !inQuotes) {
+        row.push(current.trim()); current = '';
+      } else { current += char; }
+    }
+    row.push(current.trim()); result.push(row);
+  }
+  return result;
+}
+async function fetchWithTimeout(url, timeoutMs) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { cache: 'no-store', signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    return response;
+  } catch (err) { clearTimeout(timeoutId); throw err; }
+}
+async function fetchData() {
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  document.getElementById('errorBox').style.display = 'none';
+  let data; let lastError;
+  try {
+    const res = await fetchWithTimeout(DATA_URL, 15000);
+    data = await res.json();
+    if (data && data.error) throw new Error(data.error);
+  } catch (err) {
+    lastError = err;
+    try {
+      const res = await fetchWithTimeout(FALLBACK_CSV_URL, 15000);
+      const text = await res.text();
+      data = parseCSV(text);
+      lastError = null;
+    } catch (err2) { lastError = err2; }
+  }
+  if (lastError) {
+    document.getElementById('loadingOverlay').style.display = 'none';
+    document.getElementById('errorBox').style.display = 'block';
+    document.getElementById('errorMessage').innerHTML = '<strong>❌ Error:</strong> ' + lastError.message;
+    return;
+  }
+  headers = data[0];
+  allData = data.slice(1).filter(row => row.length > 1 && row[0] && String(row[0]).trim());
+  detectHeaderIndices();
+  document.getElementById('loadingOverlay').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('lastUpdate').textContent = '📅 Sinkronisasi Cascading Berhasil: ' + new Date().toLocaleString('id-ID');
+  renderDashboard();
+  renderKecamatanSections();
+}
+function countByKecamatan() {
+  const counts = {
+    'Total': { total: 0, utama: 0, pengganti: 0 },
+    'banjarmasin_selatan': { total: 0, utama: 0, pengganti: 0 },
+    'banjarmasin_timur': { total: 0, utama: 0, pengganti: 0 },
+    'banjarmasin_barat': { total: 0, utama: 0, pengganti: 0 },
+    'banjarmasin_tengah': { total: 0, utama: 0, pengganti: 0 },
+    'banjarmasin_utara': { total: 0, utama: 0, pengganti: 0 }
+  };
+  allData.forEach(row => {
+    const checked = extractAndValidateRow(row);
+    const jenis = (row[COL.JENIS_SAMPEL] || '').toLowerCase();
+    counts['Total'].total++;
+    if (jenis.includes('utama') || jenis.includes('1_utama')) counts['Total'].utama++;
+    else counts['Total'].pengganti++;
+    if (counts[checked.kecamatan]) {
+      counts[checked.kecamatan].total++;
+      if (jenis.includes('utama') || jenis.includes('1_utama')) counts[checked.kecamatan].utama++;
+      else counts[checked.kecamatan].pengganti++;
+    }
+  });
+  return counts;
+}
+function renderDashboard() {
+  const counts = countByKecamatan();
+  const grid = document.getElementById('dashboardGrid');
+  const items = [
+    { key: 'Total', label: 'TOTAL KOTA', class: 'total' },
+    { key: 'banjarmasin_selatan', label: 'BJM SELATAN', class: 'selatan' },
+    { key: 'banjarmasin_timur', label: 'BJM TIMUR', class: 'timur' },
+    { key: 'banjarmasin_barat', label: 'BJM BARAT', class: 'barat' },
+    { key: 'banjarmasin_tengah', label: 'BJM TENGAH', class: 'tengah' },
+    { key: 'banjarmasin_utara', label: 'BJM UTARA', class: 'utara' }
+  ];
+  grid.innerHTML = items.map(item => {
+    const c = counts[item.key];
+    return `
+<div class="card ${item.class}" onclick="scrollToKecamatan('${item.key}')">
+<div class="card-label">${item.label}</div>
+<div class="card-big-number">${c.total}</div>
+<div class="card-sub">
+<span class="utama">${c.utama} Utama</span>
+<span class="pengganti">${c.pengganti} Pgt</span>
+</div>
+<div class="card-record-count">${c.total} Baris Valid</div>
+</div>
+`;
+  }).join('');
+}
+function scrollToKecamatan(kecamatanfixed) {
+  if (kecamatanfixed === 'Total') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  const el = document.getElementById('kec-' + kecamatanfixed.replace(/\s+/g, '-'));
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!el.classList.contains('expanded')) toggleKecamatan(kecamatanfixed);
+  }
+}
+function getKelurahanData(kecamatanfixed) {
+  const kelurahanMap = {};
+  if (KELURAHAN_MAPPER[kecamatanfixed]) {
+    Object.values(KELURAHAN_MAPPER[kecamatanfixed]).forEach(k => {
+      kelurahanMap[k] = { total: 0, utama: 0, pengganti: 0 };
+    });
+  }
+  allData.forEach(row => {
+    const checked = extractAndValidateRow(row);
+    if (checked.kecamatan === kecamatanfixed) {
+      if (!kelurahanMap[checked.kelurahan]) {
+        kelurahanMap[checked.kelurahan] = { total: 0, utama: 0, pengganti: 0 };
+      }
+      kelurahanMap[checked.kelurahan].total++;
+      const jenis = (row[COL.JENIS_SAMPEL] || '').toLowerCase();
+      if (jenis.includes('utama') || jenis.includes('1_utama')) kelurahanMap[checked.kelurahan].utama++;
+      else kelurahanMap[checked.kelurahan].pengganti++;
+    }
+  });
+  return kelurahanMap;
+}
+function renderKecamatanSections() {
+  const container = document.getElementById('kecamatanSections');
+  container.innerHTML = '';
+  KECAMATAN_ORDER.forEach(kecamatanfixed => {
+    const kelurahanMap = getKelurahanData(kecamatanfixed);
+    let kelurahanList = [];
+    if (KELURAHAN_MAPPER[kecamatanfixed]) {
+      const sortedCodes = Object.keys(KELURAHAN_MAPPER[kecamatanfixed]).sort((a, b) => parseInt(a) - parseInt(b));
+      kelurahanList = sortedCodes.map(code => KELURAHAN_MAPPER[kecamatanfixed][code]);
+    } else {
+      kelurahanList = Object.keys(kelurahanMap).sort();
+    }
+    const kecClass = KECAMATAN_CLASS[kecamatanfixed];
+    const kecId = kecamatanfixed.replace(/\s+/g, '-');
+    let totalKec = 0, utamaKec = 0, penggantiKec = 0;
+    Object.values(kelurahanMap).forEach(k => {
+      totalKec += k.total; utamaKec += k.utama; penggantiKec += k.pengganti;
+    });
+    const kelCards = kelurahanList.map(kel => {
+      const k = kelurahanMap[kel] || { total: 0, utama: 0, pengganti: 0 };
+      const kelIdClean = kel.replace(/\s+/g, '-');
+      return `
+<div class="kelurahan-wrapper">
+<div class="kelurahan-card" id="kel-${kecId}-${kelIdClean}"
+onclick="showKelurahanTable('${kecamatanfixed}', '${kel}', this)">
+<div class="kelurahan-name">${kel}</div>
+<div class="kelurahan-counts">
+<div class="kel-count total"><span class="kel-count-value">${k.total}</span> Total</div>
+<div class="kel-count utama"><span class="kel-count-value">${k.utama}</span> U</div>
+<div class="kel-count pengganti"><span class="kel-count-value">${k.pengganti}</span> P</div>
+</div>
+</div>
+<div class="kelurahan-table-container" id="table-${kecId}-${kelIdClean}">
+<div class="table-wrapper">
+<table>
+<thead><tr id="thead-${kecId}-${kelIdClean}"></tr></thead>
+<tbody id="tbody-${kecId}-${kelIdClean}"></tbody>
+</table>
+</div>
+</div>
+</div>
+`;
+    }).join('');
+    container.innerHTML += `
+<div class="kecamatan-box" id="kec-${kecId}">
+<div class="kecamatan-header ${kecClass}" onclick="toggleKecamatan('${kecamatanfixed}')">
+<div>
+<div class="kecamatan-title">${kecamatanfixed.replace(/_/g, ' ')}</div>
+<div style="font-size:0.85em;color:#888;margin-top:4px;">${kelurahanList.length} Kelurahan Sesuai Target</div>
+</div>
+<div style="display:flex;align-items:center;gap:15px;">
+<div class="kecamatan-stats">
+<div class="kec-stat"><div class="kec-stat-value">${totalKec}</div><div class="kec-stat-label">Total</div></div>
+<div class="kec-stat"><div class="kec-stat-value" style="color:#27ae60;">${utamaKec}</div><div class="kec-stat-label">Utama</div></div>
+<div class="kec-stat"><div class="kec-stat-value" style="color:#e74c3c;">${penggantiKec}</div><div class="kec-stat-label">Pengganti</div></div>
+</div>
+<div class="toggle-icon">▼</div>
+</div>
+</div>
+<div class="kecamatan-content">
+<div class="kelurahan-grid">${kelCards}</div>
+</div>
+</div>
+`;
+  });
+}
+function toggleKecamatan(kecamatanfixed) {
+  document.getElementById('kec-' + kecamatanfixed.replace(/\s+/g, '-')).classList.toggle('expanded');
+}
+function showKelurahanTable(kecamatanfixed, kelurahan, cardElement) {
+  const kecId = kecamatanfixed.replace(/\s+/g, '-');
+  const kelIdClean = kelurahan.replace(/\s+/g, '-');
+  const targetTableContainer = document.getElementById(`table-${kecId}-${kelIdClean}`);
+  if (cardElement.classList.contains('active')) {
+    cardElement.classList.remove('active');
+    targetTableContainer.classList.remove('active');
+    return;
+  }
+  cardElement.parentElement.parentElement.querySelectorAll('.kelurahan-card').forEach(c => c.classList.remove('active'));
+  cardElement.parentElement.parentElement.querySelectorAll('.kelurahan-table-container').forEach(t => t.classList.remove('active'));
+  cardElement.classList.add('active');
+  let records = allData.filter(row => {
+    const checked = extractAndValidateRow(row);
+    return checked.kecamatan === kecamatanfixed && checked.kelurahan === kelurahan;
+  });
+  records.sort((a, b) => {
+    let rtA = parseInt(a[COL.NO_RT_TERPILIH]) || 0;
+    let rtB = parseInt(b[COL.NO_RT_TERPILIH]) || 0;
+    if (rtA !== rtB) return rtA - rtB;
+    let respA = parseInt(a[COL.RESPONDEN_KE]) || 0;
+    let respB = parseInt(b[COL.RESPONDEN_KE]) || 0;
+    return respA - respB;
+  });
+  const varCols = [COL.VAR_L, COL.VAR_M, COL.VAR_N, COL.VAR_U, COL.VAR_V, COL.VAR_W, COL.VAR_X, COL.VAR_Y];
+  const varHeaders = varCols.map(i => headers[i] || `Kolom ${String.fromCharCode(65+i)}`);
+  document.getElementById(`thead-${kecId}-${kelIdClean}`).innerHTML = '<th>No</th><th>Jenis Sampel</th>' + varHeaders.map(h => `<th>${h}</th>`).join('');
+  const tbody = document.getElementById(`tbody-${kecId}-${kelIdClean}`);
+  if (records.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${2 + varHeaders.length}" class="no-data">Tidak ada log data masuk untuk kelurahan ini</td></tr>`;
+  } else {
+    tbody.innerHTML = records.map((row, idx) => {
+      const jenis = row[COL.JENIS_SAMPEL] || '';
+      const badgeClass = jenis.toLowerCase().includes('utama') ? 'utama' : 'pengganti';
+      return `<tr><td>${idx + 1}</td><td><span class="badge ${badgeClass}">${jenis}</span></td>${varCols.map(i => `<td>${row[i] || '-'}</td>`).join('')}</tr>`;
+    }).join('');
+  }
+  targetTableContainer.classList.add('active');
+}
+function updateKelurahanDropdown() {
+  const kecamatanfixed = document.getElementById('kecamatanSelect').value;
+  const kelSelect = document.getElementById('kelurahanSelect');
+  document.getElementById('filterResult').classList.remove('active');
+  if (!kecamatanfixed) { kelSelect.style.display = 'none'; return; }
+  let kelurahanList = [];
+  if (KELURAHAN_MAPPER[kecamatanfixed]) {
+    const sortedCodes = Object.keys(KELURAHAN_MAPPER[kecamatanfixed]).sort((a, b) => parseInt(a) - parseInt(b));
+    kelurahanList = sortedCodes.map(code => KELURAHAN_MAPPER[kecamatanfixed][code]);
+  }
+  kelSelect.innerHTML = '<option value="">Semua Kelurahan</option>' + kelurahanList.map(k => `<option value="${k}">${k}</option>`).join('');
+  kelSelect.style.display = 'inline-block';
+}
+function showFilterResult() {
+  const kecamatanfixed = document.getElementById('kecamatanSelect').value;
+  const kelurahan = document.getElementById('kelurahanSelect').value;
+  const resultDiv = document.getElementById('filterResult');
+  if (!kecamatanfixed) { resultDiv.classList.remove('active'); return; }
+  let filtered = allData.filter(r => {
+    const checked = extractAndValidateRow(r);
+    if (kelurahan) {
+      return checked.kecamatan === kecamatanfixed && checked.kelurahan === kelurahan;
+    }
+    return checked.kecamatan === kecamatanfixed;
+  });
+  filtered.sort((a, b) => {
+    let rtA = parseInt(a[COL.NO_RT_TERPILIH]) || 0;
+    let rtB = parseInt(b[COL.NO_RT_TERPILIH]) || 0;
+    if (rtA !== rtB) return rtA - rtB;
+    let respA = parseInt(a[COL.RESPONDEN_KE]) || 0;
+    let respB = parseInt(b[COL.RESPONDEN_KE]) || 0;
+    return respA - respB;
+  });
+  const total = filtered.length;
+  const utama = filtered.filter(r => (r[COL.JENIS_SAMPEL] || '').toLowerCase().includes('utama')).length;
+  const pengganti = total - utama;
+  const varCols = [COL.VAR_L, COL.VAR_M, COL.VAR_N, COL.VAR_U, COL.VAR_V, COL.VAR_W, COL.VAR_X, COL.VAR_Y];
+  const varHeaders = varCols.map(i => headers[i] || `Kolom ${String.fromCharCode(65+i)}`);
+  let html = `
+<div style="margin-bottom:15px;padding:15px;background:#f8f9fa;border-radius:8px;text-transform:uppercase;font-size:0.9em;line-height:1.4;">
+<strong>KECAMATAN VERIFIED: ${kecamatanfixed.replace(/_/g, ' ')}</strong> ${kelurahan ? ' - ' + kelurahan : ''}
+<div style="margin-top:5px;">
+<span style="color:#3498db;font-weight:700;">${total} Total</span> |
+<span style="color:#27ae60;font-weight:700;">${utama} Utama</span> |
+<span style="color:#e74c3c;font-weight:700;">${pengganti} Pengganti</span>
+</div>
+</div>
+<div class="table-wrapper"><table><thead><tr><th>No</th><th>Jenis Sampel</th>${varHeaders.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>
+`;
+  if (filtered.length === 0) {
+    html += `<tr><td colspan="${2 + varHeaders.length}" class="no-data">Tidak ada data terdeteksi</td></tr>`;
+  } else {
+    html += filtered.map((row, idx) => {
+      const jenis = row[COL.JENIS_SAMPEL] || '';
+      const badgeClass = jenis.toLowerCase().includes('utama') ? 'utama' : 'pengganti';
+      return `<tr><td>${idx + 1}</td><td><span class="badge ${badgeClass}">${jenis}</span></td>${varCols.map(i => `<td>${row[i] || '-'}</td>`).join('')}</tr>`;
+    }).join('');
+  }
+  html += '</tbody></table></div>';
+  resultDiv.innerHTML = html;
+  resultDiv.classList.add('active');
+}
+document.getElementById('kecamatanSelect').addEventListener('change', () => { updateKelurahanDropdown(); showFilterResult(); });
+document.getElementById('kelurahanSelect').addEventListener('change', showFilterResult);
+const FALLBACK_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTffoSWhwMngIzPQGKo0egt-8vgdkgeHC2jDStwTW-k17b_a8rtrI5h7KhEr1pUocS7nUjG0-CByNMs/pub?gid=476644261&single=true&output=csv';
+fetchData();
+</script>
+</body>
+</html>
