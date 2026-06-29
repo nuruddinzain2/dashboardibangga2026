@@ -446,23 +446,13 @@ grid-template-columns: 1fr;
 const PORTAL_URL = 'https://script.google.com/macros/s/AKfycbxvobKQXr2BSDni30i9NHEn6AYenz4m5rqTAbrkYto31JUUX8xhJOjXJ3zrFscLFsS6-A/exec';
 const DATA_URL = `${PORTAL_URL}?action=getDashboardData`;
 const COL = {
-JENIS_SAMPEL: 9,
-KECAMATAN: 14,
-START_KEL: 15,
-END_KEL: 19,
-VAR_L: 11, VAR_M: 12, VAR_N: 13,
-VAR_U: 20, VAR_V: 21, VAR_W: 22, VAR_X: 23, VAR_Y: 24,
-NO_RT_TERPILIH: 20,
-RESPONDEN_KE: 23
-};
-
-const KECAMATAN_NAME_TO_DISPLAY = {
-  'banjarmasin_timur':   'banjarmasin_selatan',
-  'banjarmasin_tengah':  'banjarmasin_timur',
-  'banjarmasin_selatan': 'banjarmasin_barat',
-  'banjarmasi_barat':    'banjarmasin_tengah',
-  'banjarmasin_barat':   'banjarmasin_tengah',
-  'banjarmasin_utara':   'banjarmasin_utara'
+JENIS_SAMPEL: 5,
+KECAMATAN: 10,
+KELURAHAN: 11,
+VAR_L: 16, VAR_M: 17, VAR_N: 18,
+VAR_U: 21, VAR_V: 22, VAR_W: 31, VAR_X: 32, VAR_Y: 33,
+NO_RT_TERPILIH: 12,
+RESPONDEN_KE: 15
 };
 
 const KELURAHAN_MAPPER = {
@@ -509,36 +499,19 @@ let headers = [];
 
 function extractAndValidateRow(row) {
   let rawKecName = (row[COL.KECAMATAN] || '').toLowerCase().trim().replace(/\s+/g, '_');
-  let displayKec = KECAMATAN_NAME_TO_DISPLAY[rawKecName] || rawKecName;
-
-  let detectedKelurahan = null;
-  for (let i = COL.START_KEL; i <= COL.END_KEL; i++) {
-    let val = (row[i] || '').trim();
-    if (val && val !== '-') {
-      if (/^option_\d+$/i.test(val)) {
-        let optNum = val.match(/\d+/)[0];
-        if (KELURAHAN_MAPPER[displayKec] && KELURAHAN_MAPPER[displayKec][optNum]) {
-          detectedKelurahan = KELURAHAN_MAPPER[displayKec][optNum];
-          break;
-        }
-      }
-      if (val.includes('__')) {
-        let clean = val.split('__')[1] || val;
-        detectedKelurahan = clean.replace(/_/g, ' ').toUpperCase();
-        break;
-      }
-      detectedKelurahan = val.replace(/_/g, ' ').toUpperCase();
-      break;
-    }
+  let rawKelName = (row[COL.KELURAHAN] || '').trim().toUpperCase();
+  let displayKec = rawKecName;
+  if (!displayKec) {
+    return { kecamatan: 'TIDAK_TERIDENTIFIKASI', kelurahan: 'TIDAK TERIDENTIFIKASI' };
   }
-  if (!detectedKelurahan) {
+  if (!rawKelName) {
     return { kecamatan: displayKec, kelurahan: 'TIDAK TERIDENTIFIKASI' };
   }
-  let trueKecamatan = REVERSE_KELURAHAN_LOOKUP[detectedKelurahan];
+  let trueKecamatan = REVERSE_KELURAHAN_LOOKUP[rawKelName];
   if (trueKecamatan && trueKecamatan !== displayKec) {
-    return { kecamatan: trueKecamatan, kelurahan: detectedKelurahan, isCorrected: true };
+    return { kecamatan: trueKecamatan, kelurahan: rawKelName, isCorrected: true };
   }
-  return { kecamatan: displayKec, kelurahan: detectedKelurahan, isCorrected: false };
+  return { kecamatan: displayKec, kelurahan: rawKelName, isCorrected: false };
 }
 
 function detectHeaderIndices() {
@@ -861,7 +834,7 @@ function showFilterResult() {
 }
 document.getElementById('kecamatanSelect').addEventListener('change', () => { updateKelurahanDropdown(); showFilterResult(); });
 document.getElementById('kelurahanSelect').addEventListener('change', showFilterResult);
-const FALLBACK_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTffoSWhwMngIzPQGKo0egt-8vgdkgeHC2jDStwTW-k17b_a8rtrI5h7KhEr1pUocS7nUjG0-CByNMs/pub?gid=476644261&single=true&output=csv';
+const FALLBACK_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQeTuAyjHtvnSVhwB8ex55mfN4KaQt8Oy8XBcdLqM1d7b-SRrhaT3zEiI_WTcxtmAepHpiOaiXNSqJ5/pub?output=csv';
 fetchData();
 </script>
 </body>
